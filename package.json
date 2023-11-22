@@ -1,0 +1,23 @@
+{
+  "name": "fso_13",
+  "version": "1.0.0",
+  "description": "Project for Chapter 13 of Full Stack Open",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "lint": "eslint ."
+  },
+  "author": "John Anderson",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "nodemon": "^3.0.1"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "sequelize": "^6.35.1"
+  }
+}
