@@ -14,7 +14,8 @@ BloglistUser.init(
     username: {
       type: DataTypes.STRING,
       unique: true,
-      allowNull: false
+      allowNull: false,
+      validate: { isEmail: true }
     },
     passwordHash: {
       type: DataTypes.STRING,
