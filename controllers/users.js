@@ -4,7 +4,12 @@ const bcrypt = require('bcrypt');
 const { Blog, BloglistUser } = require('../models');
 
 router.get('/', async (req, res) => {
-  const users = await BloglistUser.findAll();
+  const users = await BloglistUser.findAll({
+    include: {
+      model: Blog,
+      attributes: { exclude: ['bloglistuserId', 'id'] }
+    }
+  });
   res.json(users);
 });
 
