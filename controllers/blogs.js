@@ -7,9 +7,14 @@ const { Blog, BloglistUser } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const where = {};
-    if (req.query.search) where.title = { [Op.iLike]: `%${req.query.search}%` };
-    console.log(req.query.search, where);
+    let where = {};
+    if (req.query.search)
+      where = {
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${req.query.search}%` } },
+          { author: { [Op.iLike]: `%${req.query.search}%` } }
+        ]
+      };
     const blogs = await Blog.findAll({
       attributes: { exclude: ['bloglistuserId'] },
       include: {
