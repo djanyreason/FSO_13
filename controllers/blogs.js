@@ -1,12 +1,12 @@
 const router = require('express').Router();
+const jwt = require('jsonwebtoken');
+const { SECRET } = require('../util/config');
 
 const { Blog } = require('../models');
 
 router.get('/', async (req, res) => {
-  console.log('here!');
   try {
     const blogs = await Blog.findAll();
-    console.log(JSON.stringify(blogs, null, 2));
     res.json(blogs);
   } catch (error) {
     return res.status(500).json({ error });
@@ -39,9 +39,20 @@ router.put('/:id', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
-  console.log(req.body);
+  const { title, author, url } = req.body;
   try {
-    const blog = await Blog.create(req.body);
+    const newBlog = { title, author, url };
+    if (req.body.likes) newBlog.likes = req.body.likes;
+    if (req.token) {
+      try {
+        const decodedToken = jwt.decode(req.token, SECRET);
+        newBlog.bloglistuserId = decodedToken.id;
+      } catch (error) {
+        res.status(401).json({ error: 'invalid token' });
+        return;
+      }
+    }
+    const blog = await Blog.create(newBlog);
     res.json(blog);
   } catch (error) {
     next(error);
