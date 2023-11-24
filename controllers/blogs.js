@@ -16,6 +16,22 @@ router.get('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
   if (blog) {
+    if (blog.bloglistuserId !== null) {
+      if (!req.token)
+        return res
+          .status(401)
+          .json({ error: 'only the user who added the blog may delete it' });
+      try {
+        const decodedToken = jwt.decode(req.token, SECRET);
+        if (decodedToken.id !== blog.bloglistuserId)
+          return res
+            .status(401)
+            .json({ error: 'only the user who added the blog may delete it' });
+      } catch (error) {
+        res.status(401).json({ error: 'invalid token' });
+        return;
+      }
+    }
     await blog.destroy();
     res.json(blog);
   } else {
