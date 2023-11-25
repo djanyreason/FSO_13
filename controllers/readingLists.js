@@ -1,8 +1,6 @@
 const router = require('express').Router();
-const jwt = require('jsonwebtoken');
-
-const { SECRET } = require('../util/config');
 const { ReadingList } = require('../models');
+const { tokenValidator } = require('../util/middleware');
 
 router.post('/', async (req, res, next) => {
   try {
@@ -14,25 +12,14 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.put('/:id', async (req, res, next) => {
-  if (!req.token)
-    return res
-      .status(401)
-      .json({ error: 'User associated with reading list must be logged in' });
-
+router.put('/:id', tokenValidator, async (req, res, next) => {
   const readingList = await ReadingList.findByPk(req.params.id);
   if (!readingList) return res.status(404).end();
 
-  try {
-    const decodedToken = jwt.decode(req.token, SECRET);
-    if (decodedToken.id !== readingList.bloglistuserId)
-      return res
-        .status(401)
-        .json({ error: 'User associated with reading list must be logged in' });
-  } catch (error) {
-    res.status(401).json({ error: 'invalid token' });
-    return;
-  }
+  if (req.userId !== readingList.bloglistuserId)
+    return res
+      .status(401)
+      .json({ error: 'User associated with reading list must be logged in' });
 
   if (!Object.keys(req.body).includes('read'))
     return res.status(200).json(readingList);

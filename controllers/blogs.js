@@ -1,9 +1,8 @@
 const router = require('express').Router();
-const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-const { SECRET } = require('../util/config');
 
 const { Blog, BloglistUser } = require('../models');
+const { tokenValidator } = require('../util/middleware');
 
 router.get('/', async (req, res) => {
   try {
@@ -30,25 +29,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', tokenValidator, async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
   if (blog) {
-    if (blog.bloglistuserId !== null) {
-      if (!req.token)
-        return res
-          .status(401)
-          .json({ error: 'only the user who added the blog may delete it' });
-      try {
-        const decodedToken = jwt.decode(req.token, SECRET);
-        if (decodedToken.id !== blog.bloglistuserId)
-          return res
-            .status(401)
-            .json({ error: 'only the user who added the blog may delete it' });
-      } catch (error) {
-        res.status(401).json({ error: 'invalid token' });
-        return;
-      }
-    }
+    if (req.userId !== blog.bloglistuserId)
+      return res
+        .status(401)
+        .json({ error: 'only the user who added the blog may delete it' });
     await blog.destroy();
     res.json(blog);
   } else {
@@ -71,18 +58,9 @@ router.put('/:id', async (req, res, next) => {
   } else res.status(404).end();
 });
 
-router.post('/', async (req, res, next) => {
-  if (!req.token)
-    return res.status(401).json({ error: 'Log in to add a blog!' });
+router.post('/', tokenValidator, async (req, res, next) => {
   try {
-    const newBlog = { ...req.body };
-    try {
-      const decodedToken = jwt.decode(req.token, SECRET);
-      newBlog.bloglistuserId = decodedToken.id;
-    } catch (error) {
-      res.status(401).json({ error: 'invalid token' });
-      return;
-    }
+    const newBlog = { ...req.body, bloglistuserId: req.userId };
     const blog = await Blog.create(newBlog);
     res.json(blog);
   } catch (error) {
