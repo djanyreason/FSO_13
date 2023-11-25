@@ -4,6 +4,9 @@ const bcrypt = require('bcrypt');
 const { Blog, BloglistUser, ReadingList } = require('../models');
 
 router.get('/:id', async (req, res) => {
+  const where = {};
+  if (req.query.read === 'true') where.read = true;
+  else if (req.query.read === 'false') where.read = false;
   const user = await BloglistUser.findByPk(req.params.id, {
     attributes: { exclude: ['id', 'passwordHash', 'createdAt', 'updatedAt'] },
     include: [
@@ -11,7 +14,7 @@ router.get('/:id', async (req, res) => {
         model: Blog,
         as: 'readings',
         attributes: { exclude: ['createdAt', 'updatedAt', 'bloglistuserId'] },
-        through: { attributes: ['read', 'id'] }
+        through: { attributes: ['read', 'id'], where }
       }
     ]
   });
