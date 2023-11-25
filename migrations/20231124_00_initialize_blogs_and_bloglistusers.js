@@ -44,7 +44,7 @@ module.exports = {
         allowNull: false,
         validate: { isEmail: true }
       },
-      passwordHash: {
+      password_hash: {
         type: DataTypes.STRING,
         allowNull: false
       },
@@ -68,7 +68,7 @@ module.exports = {
     });
   },
   down: async ({ context: queryInterface }) => {
-    await queryInterface.dropTable('notes');
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('blogs');
+    await queryInterface.dropTable('bloglistusers');
   }
 };

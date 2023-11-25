@@ -72,18 +72,16 @@ router.put('/:id', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
-  const { title, author, url } = req.body;
+  if (!req.token)
+    return res.status(401).json({ error: 'Log in to add a blog!' });
   try {
-    const newBlog = { title, author, url };
-    if (req.body.likes) newBlog.likes = req.body.likes;
-    if (req.token) {
-      try {
-        const decodedToken = jwt.decode(req.token, SECRET);
-        newBlog.bloglistuserId = decodedToken.id;
-      } catch (error) {
-        res.status(401).json({ error: 'invalid token' });
-        return;
-      }
+    const newBlog = { ...req.body };
+    try {
+      const decodedToken = jwt.decode(req.token, SECRET);
+      newBlog.bloglistuserId = decodedToken.id;
+    } catch (error) {
+      res.status(401).json({ error: 'invalid token' });
+      return;
     }
     const blog = await Blog.create(newBlog);
     res.json(blog);
