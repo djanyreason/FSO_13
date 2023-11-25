@@ -1,14 +1,35 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
-const { Blog, BloglistUser } = require('../models');
+const { Blog, BloglistUser, ReadingList } = require('../models');
+
+router.get('/:id', async (req, res) => {
+  const user = await BloglistUser.findByPk(req.params.id, {
+    attributes: { exclude: ['id', 'passwordHash', 'createdAt', 'updatedAt'] },
+    include: [
+      {
+        model: Blog,
+        as: 'readings',
+        attributes: { exclude: ['createdAt', 'updatedAt', 'bloglistuserId'] },
+        through: { attributes: [] }
+      }
+    ]
+  });
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).end();
+  }
+});
 
 router.get('/', async (req, res) => {
   const users = await BloglistUser.findAll({
-    include: {
-      model: Blog,
-      attributes: { exclude: ['bloglistuserId', 'id'] }
-    }
+    include: [
+      {
+        model: Blog,
+        attributes: { exclude: ['bloglistuserId', 'id'] }
+      }
+    ]
   });
   res.json(users);
 });
